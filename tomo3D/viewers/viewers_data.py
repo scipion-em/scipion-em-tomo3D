@@ -31,7 +31,6 @@ import pwem.viewers.views as vi
 from .views_tkinter_tree import Tomo3DTreeProvider
 from .views_tkinter_tree import Tomo3DDialog
 
-from tomo.utils import extractVesicles
 import tomo.objects
 
 
@@ -64,10 +63,9 @@ class Tomo3DDataViewer(pwviewer.Viewer):
             volIds = outputCoords.aggregate(["MAX"], "_volId", ["_volId"])
             volIds = [d['_volId'] for d in volIds]
 
-            tomoList = [tomos[objId] for objId in volIds]
+            tomoList = [tomos[objId].clone() for objId in volIds]
             tomoProvider = Tomo3DTreeProvider(tomoList)
 
-            vesicles_dict = extractVesicles(outputCoords)
-            Tomo3DDialog(self._tkRoot, vesicles_dict, provider=tomoProvider)
+            Tomo3DDialog(self._tkRoot, outputCoords, provider=tomoProvider)
 
         return views

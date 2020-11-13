@@ -19,5 +19,12 @@ This tomography plugin can be enabled by cloning this repository and execute the
     git clone https://github.com/scipion-em/scipion-em-tomo3D.git
     scipion installp -p ~/scipion-em-tomo3D --devel
 
+The plugin needs PyQt5 to be installed in the device. The following commands can be used to install PyQt5 in different distributions:
 
+.. code-block::
+    
+    Ubuntu:
+    sudo apt-get install python3-pyqt5
 
+    CentOS:
+    yum install qt5-qtbase-devel
