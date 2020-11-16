@@ -37,13 +37,13 @@ from tomo.utils import initDictVesicles, extractVesicles
 from ..utils import delaunayTriangulation, computeNormals, rotation_matrix_from_vectors
 
 
-class ProtTomoPickingReadjustNormals(ProtTomoPicking):
+class ProtTomoPickingAdjustNormals(ProtTomoPicking):
     """
     This protocol can be used to readjust the normals (Transformation Matrices) associated to a 
     SetOfCoordinates3D or to add them to vectorize a picking
     """
 
-    _label = 'readjust normlas'
+    _label = 'adjust normals'
     outputName = 'outputCoordinates'
 
     def _defineParams(self, form):
@@ -67,7 +67,7 @@ class ProtTomoPickingReadjustNormals(ProtTomoPicking):
     
     def normalAdjustment(self):
         for tomoName in self.tomoNames:
-            for idn in  len(self.tomo_vesicles[tomoName]['vesicles']):
+            for idn in range(len(self.tomo_vesicles[tomoName]['vesicles'])):
                 shell = delaunayTriangulation(self.tomo_vesicles[tomoName]['vesicles'][idn])
                 self.tomo_vesicles[tomoName]['normals'][idn] = computeNormals(shell)
     
@@ -76,13 +76,15 @@ class ProtTomoPickingReadjustNormals(ProtTomoPicking):
         outSet.setPrecedents(coordinates.getPrecedents())
         outSet.setBoxSize(coordinates.getBoxSize())
         outSet.setSamplingRate(coordinates.getSamplingRate())
-        volIds = coordinates.aggregate(["MAX"], "_volId", ["_volId"])
-        volIds = [d['_volId'] for d in volIds]
         for tomoName in self.tomoNames:
-            for idn in  len(self.tomo_vesicles[tomoName]['vesicles']):
-                outCoord = coordinates[self.tomo_vesicles[tomoName]['ids'][idn]].clone()
-                outCoord.setBoxSize(outSet.getBoxSize())
-                tr_Mat = rotation_matrix_from_vectors(self.tomo_vesicles[tomoName]['normals'][idn], 
-                                                      np.array([0, 0, 1]))
-                outCoord.setMatrix(tr_Mat)
-                outSet.append(outCoord)
+            ids = self.tomo_vesicles[tomoName]['ids']
+            normals = self.tomo_vesicles[tomoName]['normals']
+            for idv in range(len(ids)):
+                for idp in range(len(ids[idv])):
+                    outCoord = coordinates[int(ids[idv][idp])].clone()
+                    outCoord.setBoxSize(outSet.getBoxSize())
+                    tr_Mat = rotation_matrix_from_vectors(normals[idv][idp], np.array([0, 0, 1]))
+                    outCoord.setMatrix(tr_Mat)
+                    outSet.append(outCoord)
+        self._defineOutputs(outputCoordinates=outSet)
+        self._defineSourceRelation(coordinates, outSet)
